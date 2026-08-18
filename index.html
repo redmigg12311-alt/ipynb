@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Notebook Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+
+<style>
+:root{
+  --ink:#12141a;
+  --panel:#1c1f26;
+  --panel-line:#2a2e37;
+  --paper:#fbf8f0;
+  --paper-line:#e7e0cd;
+  --amber:#e2a23d;
+  --amber-dark:#b87f28;
+  --denim:#3d5a80;
+  --error:#c1443c;
+  --text-ink:#20242c;
+  --text-dim:#9aa0ac;
+  --text-bright:#f2ede1;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:
+    radial-gradient(ellipse 900px 500px at 15% -10%, #21252f 0%, transparent 60%),
+    var(--ink);
+  color:var(--text-bright);
+  font-family:'Inter',sans-serif;
+  min-height:100vh;
+}
+
+/* ---------- Toolbar ---------- */
+.toolbar{
+  position:sticky; top:0; z-index:50;
+  background:rgba(28,31,38,0.92);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--panel-line);
+  padding:14px 24px;
+  display:flex; align-items:center; gap:18px; flex-wrap:wrap;
+}
+.brand{display:flex; align-items:center; gap:10px; margin-right:auto;}
+.brand .mark{
+  width:34px;height:34px;border-radius:8px;
+  background:linear-gradient(135deg, var(--amber), var(--amber-dark));
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Fraunces',serif; font-weight:700; color:#1c1206; font-size:17px;
+  transform:rotate(-4deg);
+  box-shadow:0 2px 0 rgba(0,0,0,0.25);
+}
+.brand h1{font-family:'Fraunces',serif; font-size:19px; font-weight:600; margin:0; letter-spacing:0.2px;}
+.brand p{margin:0; font-size:11.5px; color:var(--text-dim); letter-spacing:0.3px;}
+
+.kernel-pill{
+  display:flex; align-items:center; gap:7px;
+  font-size:12px; color:var(--text-dim);
+  border:1px solid var(--panel-line); padding:6px 11px; border-radius:100px;
+  font-family:'JetBrains Mono',monospace;
+}
+.dot{width:8px;height:8px;border-radius:50%; background:#565c68; flex:none;}
+.dot.idle{background:#565c68;}
+.dot.loading{background:var(--amber); animation:pulse 1s infinite ease-in-out;}
+.dot.ready{background:#5cb87a;}
+.dot.busy{background:var(--amber); animation:pulse 0.6s infinite ease-in-out;}
+@keyframes pulse{0%,100%{opacity:1; transform:scale(1);} 50%{opacity:0.4; transform:scale(0.75);}}
+
+button{
+  font-family:'Inter',sans-serif; font-weight:600; font-size:12.5px;
+  border-radius:8px; border:1px solid var(--panel-line);
+  background:#22262e; color:var(--text-bright);
+  padding:8px 13px; cursor:pointer; display:flex; align-items:center; gap:6px;
+  transition:transform 0.12s ease, background 0.15s ease, border-color 0.15s ease;
+}
+button:hover{background:#2a2f39; border-color:#3a3f4a;}
+button:active{transform:scale(0.96);}
+button:disabled{opacity:0.45; cursor:not-allowed; transform:none;}
+button.primary{background:linear-gradient(135deg, var(--amber), var(--amber-dark)); color:#1c1206; border:none;}
+button.primary:hover{filter:brightness(1.07);}
+button.ghost{background:transparent;}
+input[type=file]{display:none;}
+
+/* ---------- Layout ---------- */
+.stage{
+  max-width:900px; margin:0 auto; padding:36px 24px 120px;
+  position:relative;
+}
+.spine{
+  position:absolute; left:50%; top:36px; bottom:60px;
+  width:2px; background:repeating-linear-gradient(to bottom, var(--panel-line) 0 6px, transparent 6px 12px);
+  transform:translateX(-459px);
+  display:none;
+}
+@media(min-width:980px){ .spine{display:block;} }
+
+.empty{
+  text-align:center; padding:80px 20px; color:var(--text-dim);
+}
+.empty .mark-lg{
+  width:64px;height:64px;border-radius:14px;margin:0 auto 18px;
+  background:linear-gradient(135deg, var(--amber), var(--amber-dark));
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Fraunces',serif; font-weight:700; color:#1c1206; font-size:30px;
+  transform:rotate(-4deg);
+}
+.empty h2{font-family:'Fraunces',serif; color:var(--text-bright); font-weight:600; font-size:22px; margin:0 0 8px;}
+.empty p{font-size:13.5px; max-width:420px; margin:0 auto 22px; line-height:1.6;}
+.empty .actions{display:flex; gap:10px; justify-content:center; flex-wrap:wrap;}
+
+/* ---------- Cell ---------- */
+.cell{
+  position:relative; margin-bottom:22px;
+  border-radius:12px;
+  border:1px solid var(--panel-line);
+  background:var(--panel);
+  overflow:hidden;
+  box-shadow:0 1px 0 rgba(0,0,0,0.2);
+}
+.cell.markdown .cell-body{background:var(--paper);}
+.cell-topbar{
+  display:flex; align-items:center; gap:10px; padding:8px 10px;
+  border-bottom:1px solid var(--panel-line);
+  background:#1a1d24;
+}
+.stamp{
+  font-family:'JetBrains Mono',monospace; font-weight:600; font-size:11px;
+  color:#1c1206;
+  background:var(--amber);
+  border-radius:6px; padding:3px 8px;
+  transform:rotate(-2deg);
+  min-width:44px; text-align:center;
+}
+.cell.markdown .stamp{background:var(--denim); color:#eaf1fb;}
+.tag{font-size:10.5px; letter-spacing:0.6px; text-transform:uppercase; color:var(--text-dim); font-weight:600;}
+.cell-controls{margin-left:auto; display:flex; gap:6px;}
+.icon-btn{
+  padding:6px 8px; border-radius:6px; border:1px solid transparent; background:transparent;
+  font-size:12px; color:var(--text-dim);
+}
+.icon-btn:hover{background:#262b34; color:var(--text-bright);}
+
+.cell-body{padding:14px 16px;}
+.cell textarea{
+  width:100%; border:none; outline:none; resize:vertical;
+  font-family:'JetBrains Mono',monospace; font-size:13px; line-height:1.55;
+  background:transparent; color:#e7e9ee; min-height:44px;
+}
+.cell.markdown textarea{color:var(--text-ink); font-family:'JetBrains Mono',monospace;}
+.code-display{
+  font-family:'JetBrains Mono',monospace; font-size:13px; line-height:1.55;
+  white-space:pre-wrap; word-break:break-word;
+}
+.code-display code.hljs{background:transparent; padding:0;}
+
+.md-render{color:var(--text-ink); font-size:14.5px; line-height:1.65;}
+.md-render h1,.md-render h2,.md-render h3{font-family:'Fraunces',serif; margin:0.5em 0 0.3em;}
+.md-render p{margin:0.5em 0;}
+.md-render code{background:#efe9d8; padding:1px 5px; border-radius:4px; font-family:'JetBrains Mono',monospace; font-size:0.9em;}
+.md-render pre{background:#efe9d8; padding:10px; border-radius:8px; overflow:auto;}
+.md-render a{color:var(--denim);}
+
+.output{
+  border-top:1px dashed var(--panel-line);
+  padding:12px 16px; font-family:'JetBrains Mono',monospace; font-size:12.5px;
+  white-space:pre-wrap; word-break:break-word; color:#c8cdd6; background:#161920;
+}
+.output.error{color:#ffb4ac; background:#241717;}
+.output img{max-width:100%; border-radius:6px; margin-top:6px;}
+.output.empty-out{display:none;}
+
+.add-row{
+  display:flex; gap:8px; justify-content:center; padding:6px 0 26px;
+}
+.add-row button{font-size:11.5px; padding:7px 12px;}
+
+/* ---------- Print (PDF export) ---------- */
+@media print{
+  body{background:#fff !important; color:#000 !important;}
+  .toolbar, .add-row, .cell-controls, .empty .actions{display:none !important;}
+  .stage{max-width:100%; padding:0; margin:0;}
+  .spine{display:none;}
+  .cell{
+    background:#fff !important; border:1px solid #ccc !important;
+    box-shadow:none !important; break-inside:avoid; margin-bottom:14px;
+  }
+  .cell-topbar{background:#f2f2f2 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
+  .stamp{-webkit-print-color-adjust:exact; print-color-adjust:exact;}
+  .cell.markdown .cell-body{background:#fff !important;}
+  .code-display, .code-display code.hljs{color:#111 !important; background:#f7f7f7 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
+  .output{background:#f7f7f7 !important; color:#111 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
+  .output.error{background:#fdeceb !important; color:#7a1f17 !important;}
+  textarea{display:none;}
+  .code-display, .md-render{display:block !important;}
+}
+
+.footnote{
+  text-align:center; color:var(--text-dim); font-size:11.5px; margin-top:8px; line-height:1.6;
+}
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="brand">
+    <div class="mark">N</div>
+    <div>
+      <h1>Notebook Studio</h1>
+      <p>view · run · export .ipynb</p>
+    </div>
+  </div>
+
+  <div class="kernel-pill"><span class="dot idle" id="kernelDot"></span><span id="kernelLabel">kernel idle</span></div>
+
+  <input type="file" id="fileInput" accept=".ipynb,application/json">
+  <button class="ghost" onclick="document.getElementById('fileInput').click()">📂 Open .ipynb</button>
+  <button class="ghost" id="runAllBtn" onclick="runAll()">▶ Run all</button>
+  <button class="ghost" onclick="downloadIpynb()">⬇ Save .ipynb</button>
+  <button class="primary" onclick="exportPdf()">🖨 Export PDF</button>
+</div>
+
+<div class="stage">
+  <div class="spine"></div>
+  <div id="cellsRoot"></div>
+  <div id="addRowBottom" class="add-row" style="display:none;">
+    <button onclick="addCell('code')">+ Code cell</button>
+    <button onclick="addCell('markdown')">+ Markdown cell</button>
+  </div>
+  <p class="footnote" id="footnote" style="display:none;">Python runs locally in your browser via Pyodide — no server, nothing uploaded. Packages outside the standard scientific stack may not be available. To save as PDF, click <b>Export PDF</b> and choose "Save as PDF" in the print dialog.</p>
+</div>
+
+<script>
+marked.setOptions({ breaks:true, gfm:true });
+
+let state = { cells: [], nextId: 1 };
+let pyodide = null;
+let pyodideLoading = false;
+
+function uid(){ return state.nextId++; }
+
+function blankCell(type){
+  return { id: uid(), type, source: type==='code' ? '' : '## New note\n\nWrite markdown here.', execCount: null, outputs: [], collapsed:false };
+}
+
+/* ---------- Parsing an uploaded .ipynb ---------- */
+document.getElementById('fileInput').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev)=>{
+    try{
+      const json = JSON.parse(ev.target.result);
+      loadNotebook(json);
+    }catch(err){
+      alert('Could not read this file as a valid .ipynb (JSON) notebook.\n\n'+err.message);
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+function loadNotebook(json){
+  const cells = (json.cells || []).map(c=>{
+    const source = Array.isArray(c.source) ? c.source.join('') : (c.source || '');
+    const outputs = (c.outputs || []).map(normalizeOutput).filter(Boolean);
+    return {
+      id: uid(),
+      type: c.cell_type === 'markdown' ? 'markdown' : 'code',
+      source,
+      execCount: c.execution_count || null,
+      outputs,
+      collapsed:false
+    };
+  });
+  state.cells = cells.length ? cells : [blankCell('markdown')];
+  render();
+}
+
+function normalizeOutput(o){
+  if(o.output_type === 'stream'){
+    return { kind:'text', text: Array.isArray(o.text)? o.text.join('') : (o.text||'') };
+  }
+  if(o.output_type === 'error'){
+    const tb = Array.isArray(o.traceback) ? o.traceback.join('\n') : (o.evalue||'');
+    return { kind:'error', text: stripAnsi(tb || (o.ename+': '+o.evalue)) };
+  }
+  if(o.output_type === 'execute_result' || o.output_type === 'display_data'){
+    const data = o.data || {};
+    if(data['image/png']) return { kind:'image', text: data['image/png'] };
+    if(data['text/plain']) return { kind:'text', text: Array.isArray(data['text/plain']) ? data['text/plain'].join('') : data['text/plain'] };
+  }
+  return null;
+}
+function stripAnsi(s){ return (s||'').replace(/\u001b\[[0-9;]*m/g,''); }
+
+/* ---------- Rendering ---------- */
+function render(){
+  const root = document.getElementById('cellsRoot');
+  const hasCells = state.cells.length > 0;
+  document.getElementById('addRowBottom').style.display = hasCells ? 'flex' : 'none';
+  document.getElementById('footnote').style.display = hasCells ? 'block' : 'none';
+
+  if(!hasCells){
+    root.innerHTML = `
+      <div class="empty">
+        <div class="mark-lg">N</div>
+        <h2>No notebook loaded</h2>
+        <p>Open an existing .ipynb file to view, run and export it — or start a fresh notebook from scratch.</p>
+        <div class="actions">
+          <button class="ghost" onclick="document.getElementById('fileInput').click()">📂 Open .ipynb</button>
+          <button class="primary" onclick="addCell('code')">+ Start new notebook</button>
+        </div>
+      </div>`;
+    return;
+  }
+
+  root.innerHTML = '';
+  state.cells.forEach((cell, idx)=> root.appendChild(renderCell(cell, idx)));
+  hljs.highlightAll();
+}
+
+function renderCell(cell, idx){
+  const wrap = document.createElement('div');
+  wrap.className = 'cell ' + cell.type;
+  wrap.dataset.id = cell.id;
+
+  const stampText = cell.type === 'code' ? ('In ['+(cell.execCount ?? ' ')+']') : 'MD';
+
+  const topbar = document.createElement('div');
+  topbar.className = 'cell-topbar';
+  topbar.innerHTML = `
+    <span class="stamp">${stampText}</span>
+    <span class="tag">${cell.type === 'code' ? 'python' : 'markdown'} · cell ${idx+1}</span>
+    <div class="cell-controls">
+      ${cell.type==='code' ? `<button class="icon-btn" title="Run cell" onclick="runCell(${cell.id})">▶ Run</button>` : `<button class="icon-btn" title="Toggle preview" onclick="toggleMdPreview(${cell.id})">👁 Preview</button>`}
+      <button class="icon-btn" title="Move up" onclick="moveCell(${cell.id},-1)">↑</button>
+      <button class="icon-btn" title="Move down" onclick="moveCell(${cell.id},1)">↓</button>
+      <button class="icon-btn" title="Delete cell" onclick="deleteCell(${cell.id})">✕</button>
+    </div>
+  `;
+  wrap.appendChild(topbar);
+
+  const body = document.createElement('div');
+  body.className = 'cell-body';
+
+  if(cell.type === 'code'){
+    const ta = document.createElement('textarea');
+    ta.value = cell.source;
+    ta.spellcheck = false;
+    ta.addEventListener('input', ()=>{ cell.source = ta.value; autoGrow(ta); });
+    ta.addEventListener('keydown', (e)=>{ if(e.key === 'Tab'){ e.preventDefault(); document.execCommand('insertText', false, '    '); } });
+    body.appendChild(ta);
+    requestAnimationFrame(()=>autoGrow(ta));
+  } else {
+    if(cell._preview){
+      const div = document.createElement('div');
+      div.className = 'md-render';
+      div.innerHTML = marked.parse(cell.source || '');
+      body.appendChild(div);
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = cell.source;
+      ta.spellcheck = false;
+      ta.addEventListener('input', ()=>{ cell.source = ta.value; autoGrow(ta); });
+      body.appendChild(ta);
+      requestAnimationFrame(()=>autoGrow(ta));
+    }
+  }
+  wrap.appendChild(body);
+
+  if(cell.type === 'code' && cell.outputs && cell.outputs.length){
+    cell.outputs.forEach(o=>{
+      const out = document.createElement('div');
+      out.className = 'output' + (o.kind==='error' ? ' error' : '');
+      if(o.kind === 'image'){
+        const img = document.createElement('img');
+        img.src = 'data:image/png;base64,' + o.text;
+        out.appendChild(img);
+      } else {
+        out.textContent = o.text;
+      }
+      wrap.appendChild(out);
+    });
+  }
+
+  return wrap;
+}
+
+function autoGrow(ta){ ta.style.height='auto'; ta.style.height=(ta.scrollHeight+4)+'px'; }
+
+function toggleMdPreview(id){
+  const cell = state.cells.find(c=>c.id===id);
+  cell._preview = !cell._preview;
+  render();
+}
+
+/* ---------- Cell management ---------- */
+function addCell(type){
+  state.cells.push(blankCell(type));
+  render();
+  window.scrollTo({top: document.body.scrollHeight, behavior:'smooth'});
+}
+function deleteCell(id){
+  state.cells = state.cells.filter(c=>c.id!==id);
+  render();
+}
+function moveCell(id, dir){
+  const i = state.cells.findIndex(c=>c.id===id);
+  const j = i+dir;
+  if(j<0 || j>=state.cells.length) return;
+  [state.cells[i], state.cells[j]] = [state.cells[j], state.cells[i]];
+  render();
+}
+
+/* ---------- Pyodide execution ---------- */
+async function ensurePyodide(){
+  if(pyodide) return pyodide;
+  if(pyodideLoading){
+    while(pyodideLoading){ await new Promise(r=>setTimeout(r,150)); }
+    return pyodide;
+  }
+  pyodideLoading = true;
+  setKernel('loading', 'loading kernel…');
+  const script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js';
+  await new Promise((res,rej)=>{ script.onload=res; script.onerror=rej; document.head.appendChild(script); });
+  pyodide = await loadPyodide();
+  setKernel('ready', 'kernel ready');
+  pyodideLoading = false;
+  return pyodide;
+}
+
+function setKernel(state_, label){
+  const dot = document.getElementById('kernelDot');
+  const lab = document.getElementById('kernelLabel');
+  dot.className = 'dot ' + state_;
+  lab.textContent = label;
+}
+
+let execCounter = 0;
+
+async function runCell(id){
+  const cell = state.cells.find(c=>c.id===id);
+  if(!cell || cell.type!=='code') return;
+  try{
+    const py = await ensurePyodide();
+    setKernel('busy', 'running…');
+    let buf = [];
+    py.setStdout({ batched:(s)=>buf.push(s) });
+    py.setStderr({ batched:(s)=>buf.push(s) });
+
+    cell.outputs = [];
+    execCounter += 1;
+    let result;
+    try{
+      result = await py.runPythonAsync(cell.source);
+    }catch(err){
+      cell.outputs.push({ kind:'error', text: String(err && err.message ? err.message : err) });
+      cell.execCount = execCounter;
+      setKernel('ready','kernel ready');
+      render();
+      return;
+    }
+    if(buf.length){
+      cell.outputs.push({ kind:'text', text: buf.join('') });
+    }
+    if(result !== undefined && result !== null){
+      try{
+        const repr = py.globals.get('repr')(result);
+        if(repr !== 'None') cell.outputs.push({ kind:'text', text: repr });
+      }catch(e){ /* non-representable value, skip */ }
+    }
+    cell.execCount = execCounter;
+    setKernel('ready', 'kernel ready');
+    render();
+  }catch(e){
+    setKernel('ready','kernel ready');
+    alert('Could not start the in-browser Python kernel: '+e.message);
+  }
+}
+
+async function runAll(){
+  const codeCells = state.cells.filter(c=>c.type==='code');
+  if(!codeCells.length){ alert('No code cells to run.'); return; }
+  document.getElementById('runAllBtn').disabled = true;
+  for(const c of codeCells){ await runCell(c.id); }
+  document.getElementById('runAllBtn').disabled = false;
+}
+
+/* ---------- Export ---------- */
+function exportPdf(){
+  state.cells.forEach(c=>{ if(c.type==='markdown') c._preview = true; });
+  render();
+  setTimeout(()=>window.print(), 80);
+}
+
+function downloadIpynb(){
+  const nb = {
+    cells: state.cells.map(c=>({
+      cell_type: c.type,
+      metadata: {},
+      source: (c.source||'').split(/(?<=\n)/),
+      ...(c.type==='code' ? {
+        execution_count: c.execCount,
+        outputs: (c.outputs||[]).map(o=>{
+          if(o.kind==='error') return { output_type:'error', ename:'Error', evalue:o.text, traceback:[o.text] };
+          if(o.kind==='image') return { output_type:'display_data', data:{'image/png':o.text}, metadata:{} };
+          return { output_type:'stream', name:'stdout', text:(o.text||'').split(/(?<=\n)/) };
+        })
+      } : {})
+    })),
+    metadata: {
+      kernelspec: { display_name:'Python 3 (Pyodide)', language:'python', name:'python3' },
+      language_info: { name:'python', version:'3.11' }
+    },
+    nbformat: 4,
+    nbformat_minor: 5
+  };
+  const blob = new Blob([JSON.stringify(nb, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'notebook.ipynb';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+render();
+</script>
+</body>
+</html>
