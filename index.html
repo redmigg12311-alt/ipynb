@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Notebook Studio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
@@ -13,66 +13,82 @@
 
 <style>
 :root{
-  /* VS Code Dark+ inspired palette */
   --bg:#1e1e1e;
   --panel:#252526;
   --panel-alt:#2d2d2d;
+  --rail:#222223;
   --border:#3c3c3c;
   --text:#d4d4d4;
   --text-dim:#8a8a8a;
-  --blue:#007acc;
+  --blue:#0e70c0;
   --blue-bright:#3ea6ff;
-  --green:#6a9955;
+  --green:#3fb950;
   --orange:#ce9178;
   --yellow:#dcdcaa;
   --red:#f14c4c;
-  --tab-active:#1e1e1e;
-  --tab-inactive:#2d2d2d;
 }
 *{box-sizing:border-box;}
-html,body{margin:0;padding:0;}
+html,body{margin:0;padding:0;height:100%;}
 body{
-  background:var(--bg);
-  color:var(--text);
+  background:var(--bg); color:var(--text);
   font-family:'Inter','Segoe UI',sans-serif;
-  min-height:100vh;
+  height:100vh; overflow:hidden;
 }
 
-/* ---------- Toolbar (VS Code title/activity bar feel) ---------- */
-.toolbar{
-  position:sticky; top:0; z-index:50;
-  background:var(--panel);
+/* ================= APP SHELL (Colab / VS Code style layout) ================= */
+.app-shell{ display:flex; height:100vh; }
+
+.icon-rail{
+  width:48px; flex:none; background:var(--rail); border-right:1px solid var(--border);
+  display:flex; flex-direction:column; align-items:center; padding-top:10px; gap:4px;
+}
+.rail-btn{
+  width:34px; height:34px; border-radius:6px; border:none; background:transparent;
+  color:var(--text-dim); font-size:16px; display:flex; align-items:center; justify-content:center;
+  cursor:pointer; padding:0;
+}
+.rail-btn:hover{ background:#33343a; color:var(--text); }
+.rail-btn.active{ background:#0e3a5c; color:var(--blue-bright); }
+
+.main-col{ flex:1; display:flex; flex-direction:column; min-width:0; height:100vh; }
+
+.topbar{ background:var(--panel); border-bottom:1px solid var(--border); flex:none; }
+.topbar-row1{
+  display:flex; align-items:center; gap:10px; padding:9px 16px;
   border-bottom:1px solid var(--border);
-  padding:10px 20px;
-  display:flex; align-items:center; gap:14px; flex-wrap:wrap;
 }
-.brand{display:flex; align-items:center; gap:10px; margin-right:auto;}
+.brand{display:flex; align-items:center; gap:9px;}
 .brand .mark{
-  width:30px;height:30px;border-radius:6px;
-  background:var(--blue);
+  width:26px;height:26px;border-radius:6px; background:var(--blue);
   display:flex;align-items:center;justify-content:center;
-  font-family:'JetBrains Mono',monospace; font-weight:700; color:#fff; font-size:14px;
+  font-family:'JetBrains Mono',monospace; font-weight:700; color:#fff; font-size:12px;
 }
-.brand h1{font-family:'Inter',sans-serif; font-size:14.5px; font-weight:600; margin:0; letter-spacing:0.1px;}
-.brand p{margin:0; font-size:11px; color:var(--text-dim); font-family:'JetBrains Mono',monospace;}
+.brand h1{font-size:13.5px; font-weight:600; margin:0;}
+#filenameLabel{
+  font-size:13px; color:var(--text-dim); font-family:'JetBrains Mono',monospace;
+  padding:3px 8px; border-radius:4px;
+}
+.spacer{flex:1;}
+.resources-pill{
+  display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--text-dim);
+  border:1px solid var(--border); padding:5px 10px; border-radius:5px; background:var(--panel-alt);
+  cursor:pointer; font-family:'JetBrains Mono',monospace;
+}
+.resources-pill:hover{ border-color:#565656; color:var(--text); }
+.resources-pill .gdot{width:6px;height:6px;border-radius:50%; background:var(--green); flex:none;}
 
-.kernel-pill{
-  display:flex; align-items:center; gap:7px;
-  font-size:11.5px; color:var(--text-dim);
-  border:1px solid var(--border); padding:5px 10px; border-radius:4px;
-  font-family:'JetBrains Mono',monospace;
-  background:var(--panel-alt);
+.topbar-row2{ display:flex; align-items:center; gap:8px; padding:8px 16px; flex-wrap:wrap; }
+.cmd-search{
+  flex:none; width:200px; background:var(--panel-alt); border:1px solid var(--border);
+  border-radius:16px; color:var(--text-dim); font-size:12px; padding:6px 12px;
+  font-family:'Inter',sans-serif;
 }
-.dot{width:7px;height:7px;border-radius:50%; background:#565c68; flex:none;}
-.dot.idle{background:#565c68;}
-.dot.loading{background:var(--yellow); animation:pulse 1s infinite ease-in-out;}
-.dot.ready{background:#3fb950;}
-.dot.busy{background:var(--yellow); animation:pulse 0.6s infinite ease-in-out;}
-@keyframes pulse{0%,100%{opacity:1; transform:scale(1);} 50%{opacity:0.4; transform:scale(0.75);}}
+.cmd-search:focus{ outline:none; border-color:var(--blue); color:var(--text); }
+.divider{width:1px; height:20px; background:var(--border); margin:0 2px;}
 
 button{
   font-family:'Inter','Segoe UI',sans-serif; font-weight:500; font-size:12px;
-  border-radius:4px; border:1px solid var(--border);
+  border-radius:5px; border:1px solid var(--border);
   background:var(--panel-alt); color:var(--text);
   padding:7px 12px; cursor:pointer; display:flex; align-items:center; gap:6px;
   transition:background 0.12s ease, border-color 0.12s ease;
@@ -85,9 +101,43 @@ button.primary:hover{background:var(--blue-bright); border-color:var(--blue-brig
 button.ghost{background:transparent;}
 input[type=file]{display:none;}
 
-/* ---------- Layout ---------- */
-.stage{ max-width:920px; margin:0 auto; padding:28px 20px 120px; }
+.body-row{ flex:1; display:flex; min-height:0; }
 
+.side-panel{
+  width:0; flex:none; overflow:hidden; border-right:1px solid var(--border);
+  background:var(--panel); transition:width 0.15s ease;
+}
+.side-panel.open{ width:270px; overflow-y:auto; padding:16px; }
+.panel-title{ font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-dim); margin-bottom:12px; }
+.panel-empty{ font-size:12px; color:var(--text-dim); line-height:1.6; }
+.outline-item{ font-size:12.5px; padding:6px 8px; border-radius:4px; cursor:pointer; color:var(--text); line-height:1.4; }
+.outline-item:hover{ background:var(--panel-alt); }
+.outline-item.lvl2{ padding-left:18px; font-size:12px; color:var(--text-dim); }
+.outline-item.lvl3{ padding-left:28px; font-size:11.5px; color:var(--text-dim); }
+
+.res-note{ font-size:11px; color:var(--text-dim); line-height:1.6; margin-bottom:14px; padding:9px 10px; background:var(--panel-alt); border-radius:6px; border:1px solid var(--border); }
+.res-group{ margin-bottom:14px; }
+.res-label{ font-size:10.5px; text-transform:uppercase; letter-spacing:0.4px; color:var(--text-dim); margin-bottom:3px; }
+.res-val{ font-size:13px; font-family:'JetBrains Mono',monospace; color:var(--text); }
+.res-val.ok{ color:var(--green); }
+.res-val.muted{ color:var(--text-dim); }
+.res-bar{ height:4px; background:var(--panel-alt); border-radius:2px; margin-top:6px; overflow:hidden; }
+.res-bar-fill{ height:100%; background:var(--blue-bright); }
+
+.stage{ flex:1; overflow-y:auto; padding:26px 22px 110px; }
+
+.statusbar{
+  flex:none; display:flex; align-items:center; gap:10px; padding:5px 16px;
+  background:var(--panel); border-top:1px solid var(--border);
+  font-size:11px; color:var(--text-dim); font-family:'JetBrains Mono',monospace;
+}
+.statusbar .sep{ opacity:0.4; }
+.dot{width:7px;height:7px;border-radius:50%; background:#565c68; flex:none;}
+.dot.idle{background:#565c68;} .dot.loading{background:var(--yellow); animation:pulse 1s infinite ease-in-out;}
+.dot.ready{background:var(--green);} .dot.busy{background:var(--yellow); animation:pulse 0.6s infinite ease-in-out;}
+@keyframes pulse{0%,100%{opacity:1; transform:scale(1);} 50%{opacity:0.4; transform:scale(0.75);}}
+
+/* ---------- Notices / Empty state ---------- */
 .notice{
   display:flex; gap:10px; align-items:flex-start;
   background:#2d2416; border:1px solid #5a4a1f; color:#e8c674;
@@ -102,197 +152,155 @@ input[type=file]{display:none;}
   background:var(--blue); display:flex;align-items:center;justify-content:center;
   font-family:'JetBrains Mono',monospace; font-weight:700; color:#fff; font-size:24px;
 }
-.empty h2{font-family:'Inter',sans-serif; color:var(--text); font-weight:600; font-size:19px; margin:0 0 8px;}
+.empty h2{font-size:19px; font-weight:600; margin:0 0 8px; color:var(--text);}
 .empty p{font-size:13px; max-width:420px; margin:0 auto 22px; line-height:1.6;}
 .empty .actions{display:flex; gap:10px; justify-content:center; flex-wrap:wrap;}
 
-/* ---------- Cell (VS Code editor tab / pane look) ---------- */
-.cell{
-  position:relative; margin-bottom:16px;
-  border-radius:6px;
-  border:1px solid var(--border);
-  background:var(--panel);
-  overflow:hidden;
-}
+/* ---------- Cell ---------- */
+.cell{ position:relative; margin-bottom:16px; border-radius:6px; border:1px solid var(--border); background:var(--panel); overflow:hidden; }
 .cell.markdown .cell-body{background:#1e1e1e;}
-.cell-topbar{
-  display:flex; align-items:center; gap:10px; padding:6px 10px;
-  border-bottom:1px solid var(--border);
-  background:var(--tab-inactive);
-}
-.stamp{
-  font-family:'JetBrains Mono',monospace; font-weight:600; font-size:11px;
-  color:#cfe8ff;
-  background:#0e3a5c;
-  border:1px solid #1c5d8f;
-  border-radius:4px; padding:2px 7px;
-  min-width:44px; text-align:center;
-}
+.cell-topbar{ display:flex; align-items:center; gap:10px; padding:6px 10px; border-bottom:1px solid var(--border); background:var(--panel-alt); }
+.stamp{ font-family:'JetBrains Mono',monospace; font-weight:600; font-size:11px; color:#cfe8ff; background:#0e3a5c; border:1px solid #1c5d8f; border-radius:4px; padding:2px 7px; min-width:44px; text-align:center; }
 .cell.markdown .stamp{background:#3a2d0e; color:#f0d9a0; border-color:#6b5320;}
 .tag{font-size:10.5px; letter-spacing:0.4px; text-transform:uppercase; color:var(--text-dim); font-weight:500; font-family:'JetBrains Mono',monospace;}
 .cell-controls{margin-left:auto; display:flex; gap:4px;}
-.icon-btn{
-  padding:5px 8px; border-radius:4px; border:1px solid transparent; background:transparent;
-  font-size:11.5px; color:var(--text-dim);
-}
+.icon-btn{ padding:5px 8px; border-radius:4px; border:1px solid transparent; background:transparent; font-size:11.5px; color:var(--text-dim); }
 .icon-btn:hover{background:#37373d; color:var(--text);}
 
 .cell-body{padding:12px 14px;}
-.cell textarea{
-  width:100%; border:none; outline:none; resize:vertical;
-  font-family:'JetBrains Mono',monospace; font-size:13px; line-height:1.6;
-  background:transparent; color:#d4d4d4; min-height:40px;
-}
-.cell.markdown textarea{color:#d4d4d4;}
-.code-display{
-  display:none;
-  font-family:'JetBrains Mono',monospace; font-size:13px; line-height:1.6;
-  white-space:pre-wrap; word-break:break-word;
-}
+.cell textarea{ width:100%; border:none; outline:none; resize:vertical; font-family:'JetBrains Mono',monospace; font-size:13px; line-height:1.6; background:transparent; color:#d4d4d4; min-height:40px; }
+.code-display{ display:none; font-family:'JetBrains Mono',monospace; font-size:13px; line-height:1.6; white-space:pre-wrap; word-break:break-word; }
 .code-display code.hljs{background:transparent; padding:0;}
 
 .md-render{color:#d4d4d4; font-size:14px; line-height:1.65;}
-.md-render h1,.md-render h2,.md-render h3{font-family:'Inter',sans-serif; font-weight:700; color:#fff; margin:0.5em 0 0.3em;}
+.md-render h1,.md-render h2,.md-render h3{font-weight:700; color:#fff; margin:0.5em 0 0.3em;}
 .md-render p{margin:0.5em 0;}
 .md-render code{background:#2d2d2d; padding:1px 5px; border-radius:4px; font-family:'JetBrains Mono',monospace; font-size:0.9em; color:var(--orange);}
 .md-render pre{background:#1a1a1a; padding:10px; border-radius:6px; overflow:auto; border:1px solid var(--border);}
 .md-render a{color:var(--blue-bright);}
 
-.output{
-  border-top:1px solid var(--border);
-  padding:10px 14px; font-family:'JetBrains Mono',monospace; font-size:12.5px;
-  white-space:pre-wrap; word-break:break-word; color:#c8cdd6; background:#161616;
-}
+.output{ border-top:1px solid var(--border); padding:10px 14px; font-family:'JetBrains Mono',monospace; font-size:12.5px; white-space:pre-wrap; word-break:break-word; color:#c8cdd6; background:#161616; }
 .output.error{color:#ff9d94; background:#3a1a17;}
 .output.info{color:#e8c674; background:#2d2416; font-style:italic;}
 .output img{max-width:100%; border-radius:4px; margin-top:6px;}
 
 .add-row{ display:flex; gap:8px; justify-content:center; padding:6px 0 26px; }
 .add-row button{font-size:11.5px; padding:7px 12px;}
-
 .footnote{ text-align:center; color:var(--text-dim); font-size:11px; margin-top:8px; line-height:1.6; font-family:'JetBrains Mono',monospace;}
 
-/* =====================================================================
-   PRINT / PDF — polished editorial report style.
-   No "MD" / "In [n]" tags — markdown flows as plain article text,
-   code sits in clean bordered panels with a colored accent rail.
-   ===================================================================== */
+/* ================= PRINT / PDF ================= */
 @media print{
   @page{ margin: 20mm 16mm; }
-  html,body{background:#fff !important; color:#161616 !important;}
-  .toolbar, .add-row, .cell-controls, .empty .actions, .notice{display:none !important;}
-  .stage{max-width:100%; padding:0; margin:0;}
+  html,body{background:#fff !important; color:#161616 !important; height:auto !important; overflow:visible !important;}
+  .app-shell,.main-col,.body-row{ display:block !important; height:auto !important; overflow:visible !important; }
+  .icon-rail, .topbar, .statusbar, .side-panel, .notice{display:none !important;}
+  .stage{ overflow:visible !important; height:auto !important; padding:0 !important; }
 
-  /* Cell-topbar (holds the MD / In[n] stamp + tag) is fully removed in print */
   .cell-topbar{ display:none !important; }
-
-  .cell{
-    background:transparent !important; border:none !important;
-    box-shadow:none !important; break-inside:avoid; margin-bottom:4px; border-radius:0 !important;
-  }
+  .cell{ background:transparent !important; border:none !important; box-shadow:none !important; break-inside:avoid; margin-bottom:4px; border-radius:0 !important; }
   .cell.markdown{ margin-bottom:2px; }
   .cell-body{padding:0;}
 
-  /* Markdown reads as normal flowing document text, no card/box */
   .cell.markdown .cell-body{background:transparent !important;}
   .md-render{color:#1c1c1c !important; font-family:'Inter','Segoe UI',sans-serif; font-size:12.5px;}
-  .md-render h1{
-    font-size:23px; font-weight:700; letter-spacing:-0.2px;
-    border-bottom:2.5px solid #0e70c0; padding-bottom:10px; margin:0 0 6px;
-    -webkit-print-color-adjust:exact; print-color-adjust:exact;
-  }
-  .md-render h2{
-    font-size:15px; font-weight:700; margin:22px 0 8px; padding-left:10px;
-    border-left:4px solid #0e70c0; color:#111;
-    -webkit-print-color-adjust:exact; print-color-adjust:exact;
-  }
+  .md-render h1{ font-size:23px; font-weight:700; letter-spacing:-0.2px; border-bottom:2.5px solid #0e70c0; padding-bottom:10px; margin:0 0 6px; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .md-render h2{ font-size:15px; font-weight:700; margin:22px 0 8px; padding-left:10px; border-left:4px solid #0e70c0; color:#111; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   .md-render h3{font-size:13px; font-weight:700; margin:14px 0 6px; color:#333;}
   .md-render p{margin:6px 0; line-height:1.6;}
   .md-render strong{color:#0b1f33;}
   .md-render code{background:#f0f0f0 !important; color:#a33 !important; padding:1px 4px; border-radius:3px;}
   .md-render a{color:#0e70c0 !important;}
 
-  /* Code cells: clean bordered panel with a colored accent rail, no In[] stamp */
   textarea{display:none !important;}
-  .cell.code{
-    margin:10px 0 14px; border-radius:6px !important; overflow:hidden;
-    border:1px solid #e4e4e4 !important; break-inside:avoid;
-    box-shadow:0 1px 2px rgba(0,0,0,0.04) !important;
-  }
-  .code-display{
-    display:block !important; color:#1a1a1a !important;
-    background:#f8f8f9 !important; border:none !important;
-    border-left:3px solid #0e70c0 !important;
-    padding:10px 12px; font-size:10.7px; margin:0;
-    -webkit-print-color-adjust:exact; print-color-adjust:exact;
-  }
+  .cell.code{ margin:10px 0 14px; border-radius:6px !important; overflow:hidden; border:1px solid #e4e4e4 !important; break-inside:avoid; box-shadow:0 1px 2px rgba(0,0,0,0.04) !important; }
+  .code-display{ display:block !important; color:#1a1a1a !important; background:#f8f8f9 !important; border:none !important; border-left:3px solid #0e70c0 !important; padding:10px 12px; font-size:10.7px; margin:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   .code-display code.hljs{color:#1a1a1a !important; background:transparent !important;}
 
-  .output{
-    background:#fbfbfb !important; color:#262626 !important;
-    border:none !important; border-top:1px solid #ececec !important;
-    border-left:3px solid #c9c9c9 !important;
-    margin:0; padding:9px 12px; font-size:10.3px;
-    -webkit-print-color-adjust:exact; print-color-adjust:exact;
-  }
+  .output{ background:#fbfbfb !important; color:#262626 !important; border:none !important; border-top:1px solid #ececec !important; border-left:3px solid #c9c9c9 !important; margin:0; padding:9px 12px; font-size:10.3px; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   .output.error{background:#fdeceb !important; color:#7a1f17 !important; border-left-color:#e0554a !important;}
   .output.info{background:#fff8e6 !important; color:#7a5b12 !important; border-left-color:#e0b23c !important;}
   .output img{border:1px solid #eee; border-radius:4px; margin:4px auto; display:block;}
 
-  .print-footer{
-    display:block !important; text-align:center; color:#aaa; font-size:9px;
-    letter-spacing:0.4px; margin-top:28px; border-top:1px solid #eee; padding-top:10px;
-  }
+  .print-footer{ display:block !important; text-align:center; color:#aaa; font-size:9px; letter-spacing:0.4px; margin-top:28px; border-top:1px solid #eee; padding-top:10px; }
 }
 .print-footer{display:none;}
 </style>
 </head>
 <body>
 
-<div class="toolbar">
-  <div class="brand">
-    <div class="mark">&gt;_</div>
-    <div>
-      <h1>Notebook Studio</h1>
-      <p>view · run · export .ipynb</p>
+<div class="app-shell">
+  <div class="icon-rail">
+    <button class="rail-btn" data-panel="outline" onclick="togglePanel('outline')" title="Outline">☰</button>
+    <button class="rail-btn" data-panel="resources" onclick="togglePanel('resources')" title="Runtime &amp; resources">▤</button>
+  </div>
+
+  <div class="main-col">
+    <div class="topbar">
+      <div class="topbar-row1">
+        <div class="brand"><div class="mark">&gt;_</div><h1>Notebook Studio</h1></div>
+        <span id="filenameLabel">untitled.ipynb</span>
+        <div class="spacer"></div>
+        <button class="resources-pill" id="resourcesPill" onclick="togglePanel('resources')">
+          <span class="gdot"></span><span id="resourcesPillText">checking hardware…</span>
+        </button>
+      </div>
+      <div class="topbar-row2">
+        <input class="cmd-search" placeholder="🔍 Commands" disabled>
+        <button onclick="addCell('code')">+ Code</button>
+        <button onclick="addCell('markdown')">+ Text</button>
+        <div class="divider"></div>
+        <button id="runAllBtn" onclick="runAll()">▶ Run all</button>
+        <div class="spacer"></div>
+        <input type="file" id="fileInput" accept=".ipynb,application/json">
+        <button class="ghost" onclick="document.getElementById('fileInput').click()">📂 Open .ipynb</button>
+        <button class="ghost" onclick="downloadIpynb()">⬇ Save .ipynb</button>
+        <button class="primary" onclick="exportPdf()">🖨 Export PDF</button>
+      </div>
+    </div>
+
+    <div class="body-row">
+      <div class="side-panel" id="sidePanel"></div>
+      <div class="stage" id="stageScroll">
+        <div class="notice" id="kernelNotice" style="display:none;">
+          <span>⚠</span>
+          <span><b>Heads up:</b> code runs in a real Python kernel entirely in your browser (Pyodide) — there's no server and no GPU behind it.
+          Pure-Python / NumPy / pandas / matplotlib cells run for real. Cells that need <b>torch, torchvision, CUDA</b> or similar (like this notebook's model training)
+          can't execute here — see the Runtime panel on the left for exactly what hardware info a browser can and can't expose.
+          For a notebook like this, run it in <b>Google Colab</b> or a real Jupyter/GPU environment; use this tool to view, edit and export it to PDF.</span>
+        </div>
+        <div id="cellsRoot"></div>
+        <div id="addRowBottom" class="add-row" style="display:none;">
+          <button onclick="addCell('code')">+ Code cell</button>
+          <button onclick="addCell('markdown')">+ Markdown cell</button>
+        </div>
+        <p class="footnote" id="footnote" style="display:none;">No packages beyond Pyodide's built-ins, and no GPU — see the Runtime panel. To save as PDF, click <b>Export PDF</b> and choose "Save as PDF" in the print dialog.</p>
+        <div class="print-footer">Exported with Notebook Studio</div>
+      </div>
+    </div>
+
+    <div class="statusbar">
+      <span class="dot idle" id="kernelDot"></span><span id="kernelLabel">kernel idle</span>
+      <span class="sep">·</span>
+      <span id="statusCores">— cores</span>
+      <span class="sep">·</span>
+      <span id="statusMem">heap n/a</span>
+      <span class="sep">·</span>
+      <span>Python 3 (Pyodide · WebAssembly)</span>
     </div>
   </div>
-
-  <div class="kernel-pill"><span class="dot idle" id="kernelDot"></span><span id="kernelLabel">kernel idle</span></div>
-
-  <input type="file" id="fileInput" accept=".ipynb,application/json">
-  <button class="ghost" onclick="document.getElementById('fileInput').click()">📂 Open .ipynb</button>
-  <button class="ghost" id="runAllBtn" onclick="runAll()">▶ Run all</button>
-  <button class="ghost" onclick="downloadIpynb()">⬇ Save .ipynb</button>
-  <button class="primary" onclick="exportPdf()">🖨 Export PDF</button>
-</div>
-
-<div class="stage">
-  <div class="notice" id="kernelNotice" style="display:none;">
-    <span>⚠</span>
-    <span><b>Heads up:</b> code runs in a real Python kernel entirely in your browser (Pyodide) — there's no server and no GPU behind it.
-    Pure-Python / NumPy / pandas / matplotlib cells run for real. Cells that need <b>torch, torchvision, CUDA</b> or similar (like this notebook's model training)
-    can't execute here — no in-browser sandbox can do GPU deep learning. Those cells will show an explanation instead of crashing.
-    For a notebook like this, run it in <b>Google Colab</b> or a real Jupyter/GPU environment; use this tool to view, edit and export it to PDF.</span>
-  </div>
-  <div id="cellsRoot"></div>
-  <div id="addRowBottom" class="add-row" style="display:none;">
-    <button onclick="addCell('code')">+ Code cell</button>
-    <button onclick="addCell('markdown')">+ Markdown cell</button>
-  </div>
-  <p class="footnote" id="footnote" style="display:none;">Packages outside Pyodide's built-ins aren't available, and there's no GPU — see the notice above. To save as PDF, click <b>Export PDF</b> and choose "Save as PDF" in the print dialog.</p>
-  <div class="print-footer">Exported with Notebook Studio</div>
 </div>
 
 <script>
 marked.setOptions({ breaks:true, gfm:true });
 
-let state = { cells: [], nextId: 1 };
+let state = { cells: [], nextId: 1, filename: 'untitled.ipynb' };
 let pyodide = null;
 let pyodideLoading = false;
 let execCounter = 0;
+let activePanel = null;
 
 function uid(){ return state.nextId++; }
+function escapeHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 function blankCell(type){
   return { id: uid(), type, source: type==='code' ? '' : '## New note\n\nWrite markdown here.', execCount: null, outputs: [], _preview: type==='markdown' };
@@ -306,6 +314,8 @@ document.getElementById('fileInput').addEventListener('change', (e)=>{
   reader.onload = (ev)=>{
     try{
       const json = JSON.parse(ev.target.result);
+      state.filename = file.name || 'untitled.ipynb';
+      document.getElementById('filenameLabel').textContent = state.filename;
       loadNotebook(json);
     }catch(err){
       alert('Could not read this file as a valid .ipynb (JSON) notebook.\n\n'+err.message);
@@ -331,6 +341,7 @@ function loadNotebook(json){
   state.cells = cells.length ? cells : [blankCell('markdown')];
   document.getElementById('kernelNotice').style.display = 'flex';
   render();
+  if(activePanel==='outline') renderOutline();
 }
 
 function normalizeOutput(o){
@@ -348,21 +359,14 @@ function normalizeOutput(o){
   }
   return null;
 }
-/* Removes ANSI escape sequences (colors, cursor moves, hide/show, erase-line)
-   and simulates \r carriage-return overwrites, so pip/progress-bar spam
-   collapses down to its final state instead of showing as garbled glyphs. */
 function cleanTerminalText(s){
   if(!s) return s;
-  let out = s.split('\n').map(line=>{
-    const parts = line.split('\r');
-    return parts[parts.length-1];
-  }).join('\n');
+  let out = s.split('\n').map(line=>{ const parts = line.split('\r'); return parts[parts.length-1]; }).join('\n');
   out = out.replace(/\u001b\[[0-9;?]*[a-zA-Z]/g, '');
-  out = out.replace(/[\u2580-\u259F]/g, ''); // stray block-drawing progress-bar glyphs
+  out = out.replace(/[\u2580-\u259F]/g, '');
   out = out.split('\n').filter((l,i,arr)=> l.trim() !== '' || (i>0 && arr[i-1].trim() !== '')).join('\n');
   return out.trim();
 }
-function escapeHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 /* ---------- Rendering ---------- */
 function render(){
@@ -478,12 +482,9 @@ function toggleMdPreview(id){
 function addCell(type){
   state.cells.push(blankCell(type));
   render();
-  window.scrollTo({top: document.body.scrollHeight, behavior:'smooth'});
+  document.getElementById('stageScroll').scrollTo({top: document.getElementById('stageScroll').scrollHeight, behavior:'smooth'});
 }
-function deleteCell(id){
-  state.cells = state.cells.filter(c=>c.id!==id);
-  render();
-}
+function deleteCell(id){ state.cells = state.cells.filter(c=>c.id!==id); render(); if(activePanel==='outline') renderOutline(); }
 function moveCell(id, dir){
   const i = state.cells.findIndex(c=>c.id===id);
   const j = i+dir;
@@ -492,13 +493,136 @@ function moveCell(id, dir){
   render();
 }
 
+/* ---------- Side panel: Outline ---------- */
+function togglePanel(name){
+  const panel = document.getElementById('sidePanel');
+  const railBtns = document.querySelectorAll('.rail-btn');
+  if(activePanel === name){
+    activePanel = null;
+    panel.classList.remove('open');
+    railBtns.forEach(b=>b.classList.remove('active'));
+    return;
+  }
+  activePanel = name;
+  panel.classList.add('open');
+  railBtns.forEach(b=> b.classList.toggle('active', b.dataset.panel===name));
+  if(name==='outline') renderOutline();
+  if(name==='resources') renderResourcesPanel();
+}
+
+function buildOutline(){
+  const items = [];
+  state.cells.forEach(c=>{
+    if(c.type!=='markdown') return;
+    (c.source||'').split('\n').forEach(line=>{
+      const m = /^(#{1,3})\s+(.*)/.exec(line.trim());
+      if(m) items.push({ level:m[1].length, text:m[2].trim(), cellId:c.id });
+    });
+  });
+  return items;
+}
+function renderOutline(){
+  const items = buildOutline();
+  const panel = document.getElementById('sidePanel');
+  if(!items.length){
+    panel.innerHTML = '<div class="panel-title">Outline</div><p class="panel-empty">No headings yet — add ## headings in a markdown cell and they\'ll show up here.</p>';
+    return;
+  }
+  panel.innerHTML = '<div class="panel-title">Outline</div>' +
+    items.map(it=>`<div class="outline-item lvl${it.level}" onclick="scrollToCell(${it.cellId})">${escapeHtml(it.text)}</div>`).join('');
+}
+function scrollToCell(id){
+  const el = document.querySelector('.cell[data-id="'+id+'"]');
+  if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+/* ---------- Side panel: Runtime & resources (real, non-fabricated data only) ---------- */
+let resources = {
+  cores: navigator.hardwareConcurrency || null,
+  deviceMemoryGB: navigator.deviceMemory || null,
+  heapUsed: null, heapLimit: null,
+  storageUsed: null, storageQuota: null,
+  gpu: { checked:false, available:false, name:null }
+};
+
+async function initResources(){
+  if(navigator.gpu){
+    try{
+      const adapter = await navigator.gpu.requestAdapter();
+      resources.gpu.checked = true;
+      if(adapter){
+        resources.gpu.available = true;
+        try{ resources.gpu.name = (adapter.info && adapter.info.description) ? adapter.info.description : 'WebGPU-compatible GPU detected'; }
+        catch(e){ resources.gpu.name = 'WebGPU-compatible GPU detected'; }
+      }
+    }catch(e){ resources.gpu.checked = true; }
+  } else {
+    resources.gpu.checked = true;
+  }
+  updateResources();
+}
+
+function bytesToMB(n){ return (n/(1024*1024)).toFixed(0); }
+function bytesToGB(n){ return (n/(1024*1024*1024)).toFixed(1); }
+
+function updateResources(){
+  if(performance.memory){
+    resources.heapUsed = performance.memory.usedJSHeapSize;
+    resources.heapLimit = performance.memory.jsHeapSizeLimit;
+  }
+  if(navigator.storage && navigator.storage.estimate){
+    navigator.storage.estimate().then(est=>{
+      resources.storageUsed = est.usage; resources.storageQuota = est.quota;
+      if(activePanel==='resources') renderResourcesPanel();
+      updateChrome();
+    }).catch(()=>{ updateChrome(); });
+  } else {
+    updateChrome();
+  }
+  if(activePanel==='resources') renderResourcesPanel();
+}
+
+function updateChrome(){
+  document.getElementById('statusCores').textContent = (resources.cores || '—') + ' cores';
+  document.getElementById('statusMem').textContent = resources.heapUsed!=null ? ('heap ' + bytesToMB(resources.heapUsed) + ' MB') : 'heap n/a';
+  const pillText = document.getElementById('resourcesPillText');
+  const cores = resources.cores ? resources.cores+' cores' : 'CPU n/a';
+  const gpuBit = resources.gpu.checked ? (resources.gpu.available ? 'GPU detected' : 'no GPU') : 'GPU…';
+  pillText.textContent = cores + ' · ' + gpuBit;
+}
+
+function renderResourcesPanel(){
+  const panel = document.getElementById('sidePanel');
+  const coresStr = resources.cores ? resources.cores + ' logical cores' : 'not reported by this browser';
+  const devMemStr = resources.deviceMemoryGB ? '~' + resources.deviceMemoryGB + ' GB (browser-reported, approximate)' : 'not reported by this browser';
+  const heapStr = resources.heapUsed!=null ? bytesToMB(resources.heapUsed)+' MB / '+bytesToMB(resources.heapLimit)+' MB' : 'not exposed by this browser';
+  const heapPct = (resources.heapUsed && resources.heapLimit) ? Math.min(100, (resources.heapUsed/resources.heapLimit*100)).toFixed(0) : 0;
+  const storageStr = resources.storageUsed!=null ? bytesToGB(resources.storageUsed)+' GB used of '+bytesToGB(resources.storageQuota)+' GB quota' : 'checking…';
+  const gpuStr = !resources.gpu.checked ? 'checking…' : (resources.gpu.available ? (resources.gpu.name || 'WebGPU-compatible GPU detected') : 'GPU unavailable in this browser');
+
+  panel.innerHTML = `
+    <div class="panel-title">Runtime &amp; resources</div>
+    <div class="res-note">Browsers deliberately don't expose system-wide CPU load, GPU utilization, or VRAM to web pages — that's a security/privacy boundary every browser enforces, not a gap in this app. Everything below is real, unfabricated data; anything a browser can't provide is labeled as such rather than guessed.</div>
+    <div class="res-group"><div class="res-label">CPU</div><div class="res-val">${coresStr}</div></div>
+    <div class="res-group"><div class="res-label">Device memory (approx.)</div><div class="res-val">${devMemStr}</div></div>
+    <div class="res-group">
+      <div class="res-label">This tab's JS heap</div>
+      <div class="res-val">${heapStr}</div>
+      <div class="res-bar"><div class="res-bar-fill" style="width:${heapPct}%"></div></div>
+    </div>
+    <div class="res-group"><div class="res-label">Browser storage quota</div><div class="res-val">${storageStr}</div></div>
+    <div class="res-group"><div class="res-label">GPU</div><div class="res-val ${resources.gpu.available ? 'ok':'muted'}">${gpuStr}</div></div>
+    <div class="res-note">GPU-accelerated training (PyTorch/CUDA) can't run in any browser regardless of the GPU detected above — utilization and VRAM numbers for it aren't exposable either, so this panel won't show any. For notebooks that need real GPU training, use Google Colab or a local Jupyter/GPU environment; use this tool to view, edit, run lightweight Python, and export to PDF.</div>
+  `;
+}
+
+setInterval(updateResources, 2000);
+initResources();
+
 /* ---------- Pyodide execution ---------- */
 async function ensurePyodide(){
   if(pyodide) return pyodide;
-  if(pyodideLoading){
-    while(pyodideLoading){ await new Promise(r=>setTimeout(r,150)); }
-    return pyodide;
-  }
+  if(pyodideLoading){ while(pyodideLoading){ await new Promise(r=>setTimeout(r,150)); } return pyodide; }
   pyodideLoading = true;
   setKernel('loading', 'loading kernel…');
   const script = document.createElement('script');
@@ -509,44 +633,26 @@ async function ensurePyodide(){
   pyodideLoading = false;
   return pyodide;
 }
-
 function setKernel(state_, label){
-  const dot = document.getElementById('kernelDot');
-  const lab = document.getElementById('kernelLabel');
-  dot.className = 'dot ' + state_;
-  lab.textContent = label;
+  document.getElementById('kernelDot').className = 'dot ' + state_;
+  document.getElementById('kernelLabel').textContent = label;
 }
 
-/* Detect shell/magic lines and known GPU/heavy-native libraries that
-   no in-browser Python kernel (Pyodide or otherwise) can run, so we
-   can explain clearly instead of throwing a raw traceback. */
 const HEAVY_LIBS = ['torch','torchvision','tensorflow','keras','cv2','jax','onnx','deepspeed'];
-
 function scanCell(source){
   const lines = (source || '').split('\n');
-  const cleaned = [];
-  const notes = [];
-  let heavyLib = null;
+  const cleaned = []; const notes = []; let heavyLib = null;
   const importRe = /^\s*(?:import|from)\s+([A-Za-z_][A-Za-z0-9_]*)/;
   for(const line of lines){
     const trimmed = line.trim();
-    if(trimmed.startsWith('!')){
-      notes.push('skipped shell command: ' + trimmed);
-      cleaned.push('# ' + line);
-      continue;
-    }
-    if(trimmed.startsWith('%')){
-      notes.push('skipped IPython magic: ' + trimmed);
-      cleaned.push('# ' + line);
-      continue;
-    }
+    if(trimmed.startsWith('!')){ notes.push('skipped shell command: ' + trimmed); cleaned.push('# ' + line); continue; }
+    if(trimmed.startsWith('%')){ notes.push('skipped IPython magic: ' + trimmed); cleaned.push('# ' + line); continue; }
     const m = importRe.exec(line);
     if(m && HEAVY_LIBS.includes(m[1]) && !heavyLib){ heavyLib = m[1]; }
     cleaned.push(line);
   }
   return { cleaned: cleaned.join('\n'), notes, heavyLib };
 }
-
 function heavyLibMessage(lib, notes){
   let msg = `⚠ This cell imports "${lib}", which needs native/GPU binaries no browser sandbox provides — `
           + `so it can't run in an in-browser Python kernel (this is a hard limit, not a bug: there's simply no `
@@ -560,24 +666,18 @@ function heavyLibMessage(lib, notes){
 async function runCell(id){
   const cell = state.cells.find(c=>c.id===id);
   if(!cell || cell.type!=='code') return;
-
   const { cleaned, notes, heavyLib } = scanCell(cell.source);
-
   if(heavyLib){
     cell.outputs = [{ kind:'info', text: heavyLibMessage(heavyLib, notes) }];
-    execCounter += 1;
-    cell.execCount = execCounter;
-    render();
-    return;
+    execCounter += 1; cell.execCount = execCounter;
+    render(); return;
   }
-
   try{
     const py = await ensurePyodide();
     setKernel('busy', 'running…');
     let buf = [];
     py.setStdout({ batched:(s)=>buf.push(s) });
     py.setStderr({ batched:(s)=>buf.push(s) });
-
     cell.outputs = [];
     execCounter += 1;
     let result;
@@ -592,22 +692,13 @@ async function runCell(id){
       } else {
         cell.outputs.push({ kind:'error', text: msg });
       }
-      cell.execCount = execCounter;
-      setKernel('ready','kernel ready');
-      render();
-      return;
+      cell.execCount = execCounter; setKernel('ready','kernel ready'); render(); return;
     }
-    if(notes.length){
-      cell.outputs.push({ kind:'info', text: notes.join('\n') });
-    }
-    if(buf.length){
-      cell.outputs.push({ kind:'text', text: cleanTerminalText(buf.join('')) });
-    }
+    if(notes.length) cell.outputs.push({ kind:'info', text: notes.join('\n') });
+    if(buf.length) cell.outputs.push({ kind:'text', text: cleanTerminalText(buf.join('')) });
     if(result !== undefined && result !== null){
-      try{
-        const repr = py.globals.get('repr')(result);
-        if(repr !== 'None') cell.outputs.push({ kind:'text', text: repr });
-      }catch(e){ /* non-representable value, skip */ }
+      try{ const repr = py.globals.get('repr')(result); if(repr !== 'None') cell.outputs.push({ kind:'text', text: repr }); }
+      catch(e){}
     }
     cell.execCount = execCounter;
     setKernel('ready', 'kernel ready');
@@ -648,17 +739,13 @@ function downloadIpynb(){
         })
       } : {})
     })),
-    metadata: {
-      kernelspec: { display_name:'Python 3 (Pyodide)', language:'python', name:'python3' },
-      language_info: { name:'python', version:'3.11' }
-    },
-    nbformat: 4,
-    nbformat_minor: 5
+    metadata: { kernelspec: { display_name:'Python 3 (Pyodide)', language:'python', name:'python3' }, language_info: { name:'python', version:'3.11' } },
+    nbformat: 4, nbformat_minor: 5
   };
   const blob = new Blob([JSON.stringify(nb, null, 2)], {type:'application/json'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'notebook.ipynb';
+  a.download = (state.filename && state.filename.toLowerCase().endsWith('.ipynb')) ? state.filename : 'notebook.ipynb';
   a.click();
   URL.revokeObjectURL(a.href);
 }
