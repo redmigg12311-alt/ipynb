@@ -5,210 +5,238 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Notebook Studio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
 
 <style>
 :root{
-  --ink:#12141a;
-  --panel:#1c1f26;
-  --panel-line:#2a2e37;
-  --paper:#fbf8f0;
-  --paper-line:#e7e0cd;
-  --amber:#e2a23d;
-  --amber-dark:#b87f28;
-  --denim:#3d5a80;
-  --error:#c1443c;
-  --text-ink:#20242c;
-  --text-dim:#9aa0ac;
-  --text-bright:#f2ede1;
+  /* VS Code Dark+ inspired palette */
+  --bg:#1e1e1e;
+  --panel:#252526;
+  --panel-alt:#2d2d2d;
+  --border:#3c3c3c;
+  --text:#d4d4d4;
+  --text-dim:#8a8a8a;
+  --blue:#007acc;
+  --blue-bright:#3ea6ff;
+  --green:#6a9955;
+  --orange:#ce9178;
+  --yellow:#dcdcaa;
+  --red:#f14c4c;
+  --tab-active:#1e1e1e;
+  --tab-inactive:#2d2d2d;
 }
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
 body{
-  background:
-    radial-gradient(ellipse 900px 500px at 15% -10%, #21252f 0%, transparent 60%),
-    var(--ink);
-  color:var(--text-bright);
-  font-family:'Inter',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Inter','Segoe UI',sans-serif;
   min-height:100vh;
 }
 
-/* ---------- Toolbar ---------- */
+/* ---------- Toolbar (VS Code title/activity bar feel) ---------- */
 .toolbar{
   position:sticky; top:0; z-index:50;
-  background:rgba(28,31,38,0.92);
-  backdrop-filter:blur(10px);
-  border-bottom:1px solid var(--panel-line);
-  padding:14px 24px;
-  display:flex; align-items:center; gap:18px; flex-wrap:wrap;
+  background:var(--panel);
+  border-bottom:1px solid var(--border);
+  padding:10px 20px;
+  display:flex; align-items:center; gap:14px; flex-wrap:wrap;
 }
 .brand{display:flex; align-items:center; gap:10px; margin-right:auto;}
 .brand .mark{
-  width:34px;height:34px;border-radius:8px;
-  background:linear-gradient(135deg, var(--amber), var(--amber-dark));
+  width:30px;height:30px;border-radius:6px;
+  background:var(--blue);
   display:flex;align-items:center;justify-content:center;
-  font-family:'Fraunces',serif; font-weight:700; color:#1c1206; font-size:17px;
-  transform:rotate(-4deg);
-  box-shadow:0 2px 0 rgba(0,0,0,0.25);
+  font-family:'JetBrains Mono',monospace; font-weight:700; color:#fff; font-size:14px;
 }
-.brand h1{font-family:'Fraunces',serif; font-size:19px; font-weight:600; margin:0; letter-spacing:0.2px;}
-.brand p{margin:0; font-size:11.5px; color:var(--text-dim); letter-spacing:0.3px;}
+.brand h1{font-family:'Inter',sans-serif; font-size:14.5px; font-weight:600; margin:0; letter-spacing:0.1px;}
+.brand p{margin:0; font-size:11px; color:var(--text-dim); font-family:'JetBrains Mono',monospace;}
 
 .kernel-pill{
   display:flex; align-items:center; gap:7px;
-  font-size:12px; color:var(--text-dim);
-  border:1px solid var(--panel-line); padding:6px 11px; border-radius:100px;
+  font-size:11.5px; color:var(--text-dim);
+  border:1px solid var(--border); padding:5px 10px; border-radius:4px;
   font-family:'JetBrains Mono',monospace;
+  background:var(--panel-alt);
 }
-.dot{width:8px;height:8px;border-radius:50%; background:#565c68; flex:none;}
+.dot{width:7px;height:7px;border-radius:50%; background:#565c68; flex:none;}
 .dot.idle{background:#565c68;}
-.dot.loading{background:var(--amber); animation:pulse 1s infinite ease-in-out;}
-.dot.ready{background:#5cb87a;}
-.dot.busy{background:var(--amber); animation:pulse 0.6s infinite ease-in-out;}
+.dot.loading{background:var(--yellow); animation:pulse 1s infinite ease-in-out;}
+.dot.ready{background:#3fb950;}
+.dot.busy{background:var(--yellow); animation:pulse 0.6s infinite ease-in-out;}
 @keyframes pulse{0%,100%{opacity:1; transform:scale(1);} 50%{opacity:0.4; transform:scale(0.75);}}
 
 button{
-  font-family:'Inter',sans-serif; font-weight:600; font-size:12.5px;
-  border-radius:8px; border:1px solid var(--panel-line);
-  background:#22262e; color:var(--text-bright);
-  padding:8px 13px; cursor:pointer; display:flex; align-items:center; gap:6px;
-  transition:transform 0.12s ease, background 0.15s ease, border-color 0.15s ease;
+  font-family:'Inter','Segoe UI',sans-serif; font-weight:500; font-size:12px;
+  border-radius:4px; border:1px solid var(--border);
+  background:var(--panel-alt); color:var(--text);
+  padding:7px 12px; cursor:pointer; display:flex; align-items:center; gap:6px;
+  transition:background 0.12s ease, border-color 0.12s ease;
 }
-button:hover{background:#2a2f39; border-color:#3a3f4a;}
-button:active{transform:scale(0.96);}
-button:disabled{opacity:0.45; cursor:not-allowed; transform:none;}
-button.primary{background:linear-gradient(135deg, var(--amber), var(--amber-dark)); color:#1c1206; border:none;}
-button.primary:hover{filter:brightness(1.07);}
+button:hover{background:#37373d; border-color:#4a4a4a;}
+button:active{transform:scale(0.97);}
+button:disabled{opacity:0.45; cursor:not-allowed;}
+button.primary{background:var(--blue); color:#fff; border:1px solid var(--blue);}
+button.primary:hover{background:var(--blue-bright); border-color:var(--blue-bright);}
 button.ghost{background:transparent;}
 input[type=file]{display:none;}
 
 /* ---------- Layout ---------- */
-.stage{
-  max-width:900px; margin:0 auto; padding:36px 24px 120px;
-  position:relative;
-}
-.spine{
-  position:absolute; left:50%; top:36px; bottom:60px;
-  width:2px; background:repeating-linear-gradient(to bottom, var(--panel-line) 0 6px, transparent 6px 12px);
-  transform:translateX(-459px);
-  display:none;
-}
-@media(min-width:980px){ .spine{display:block;} }
+.stage{ max-width:920px; margin:0 auto; padding:28px 20px 120px; }
 
-.empty{
-  text-align:center; padding:80px 20px; color:var(--text-dim);
+.notice{
+  display:flex; gap:10px; align-items:flex-start;
+  background:#2d2416; border:1px solid #5a4a1f; color:#e8c674;
+  border-radius:6px; padding:10px 14px; font-size:12.5px; line-height:1.55;
+  margin-bottom:18px;
 }
+.notice b{color:#ffdf8a;}
+
+.empty{ text-align:center; padding:80px 20px; color:var(--text-dim); }
 .empty .mark-lg{
-  width:64px;height:64px;border-radius:14px;margin:0 auto 18px;
-  background:linear-gradient(135deg, var(--amber), var(--amber-dark));
-  display:flex;align-items:center;justify-content:center;
-  font-family:'Fraunces',serif; font-weight:700; color:#1c1206; font-size:30px;
-  transform:rotate(-4deg);
+  width:56px;height:56px;border-radius:10px;margin:0 auto 18px;
+  background:var(--blue); display:flex;align-items:center;justify-content:center;
+  font-family:'JetBrains Mono',monospace; font-weight:700; color:#fff; font-size:24px;
 }
-.empty h2{font-family:'Fraunces',serif; color:var(--text-bright); font-weight:600; font-size:22px; margin:0 0 8px;}
-.empty p{font-size:13.5px; max-width:420px; margin:0 auto 22px; line-height:1.6;}
+.empty h2{font-family:'Inter',sans-serif; color:var(--text); font-weight:600; font-size:19px; margin:0 0 8px;}
+.empty p{font-size:13px; max-width:420px; margin:0 auto 22px; line-height:1.6;}
 .empty .actions{display:flex; gap:10px; justify-content:center; flex-wrap:wrap;}
 
-/* ---------- Cell ---------- */
+/* ---------- Cell (VS Code editor tab / pane look) ---------- */
 .cell{
-  position:relative; margin-bottom:22px;
-  border-radius:12px;
-  border:1px solid var(--panel-line);
+  position:relative; margin-bottom:16px;
+  border-radius:6px;
+  border:1px solid var(--border);
   background:var(--panel);
   overflow:hidden;
-  box-shadow:0 1px 0 rgba(0,0,0,0.2);
 }
-.cell.markdown .cell-body{background:var(--paper);}
+.cell.markdown .cell-body{background:#1e1e1e;}
 .cell-topbar{
-  display:flex; align-items:center; gap:10px; padding:8px 10px;
-  border-bottom:1px solid var(--panel-line);
-  background:#1a1d24;
+  display:flex; align-items:center; gap:10px; padding:6px 10px;
+  border-bottom:1px solid var(--border);
+  background:var(--tab-inactive);
 }
 .stamp{
   font-family:'JetBrains Mono',monospace; font-weight:600; font-size:11px;
-  color:#1c1206;
-  background:var(--amber);
-  border-radius:6px; padding:3px 8px;
-  transform:rotate(-2deg);
+  color:#cfe8ff;
+  background:#0e3a5c;
+  border:1px solid #1c5d8f;
+  border-radius:4px; padding:2px 7px;
   min-width:44px; text-align:center;
 }
-.cell.markdown .stamp{background:var(--denim); color:#eaf1fb;}
-.tag{font-size:10.5px; letter-spacing:0.6px; text-transform:uppercase; color:var(--text-dim); font-weight:600;}
-.cell-controls{margin-left:auto; display:flex; gap:6px;}
+.cell.markdown .stamp{background:#3a2d0e; color:#f0d9a0; border-color:#6b5320;}
+.tag{font-size:10.5px; letter-spacing:0.4px; text-transform:uppercase; color:var(--text-dim); font-weight:500; font-family:'JetBrains Mono',monospace;}
+.cell-controls{margin-left:auto; display:flex; gap:4px;}
 .icon-btn{
-  padding:6px 8px; border-radius:6px; border:1px solid transparent; background:transparent;
-  font-size:12px; color:var(--text-dim);
+  padding:5px 8px; border-radius:4px; border:1px solid transparent; background:transparent;
+  font-size:11.5px; color:var(--text-dim);
 }
-.icon-btn:hover{background:#262b34; color:var(--text-bright);}
+.icon-btn:hover{background:#37373d; color:var(--text);}
 
-.cell-body{padding:14px 16px;}
+.cell-body{padding:12px 14px;}
 .cell textarea{
   width:100%; border:none; outline:none; resize:vertical;
-  font-family:'JetBrains Mono',monospace; font-size:13px; line-height:1.55;
-  background:transparent; color:#e7e9ee; min-height:44px;
+  font-family:'JetBrains Mono',monospace; font-size:13px; line-height:1.6;
+  background:transparent; color:#d4d4d4; min-height:40px;
 }
-.cell.markdown textarea{color:var(--text-ink); font-family:'JetBrains Mono',monospace;}
+.cell.markdown textarea{color:#d4d4d4;}
 .code-display{
-  font-family:'JetBrains Mono',monospace; font-size:13px; line-height:1.55;
+  display:none;
+  font-family:'JetBrains Mono',monospace; font-size:13px; line-height:1.6;
   white-space:pre-wrap; word-break:break-word;
 }
 .code-display code.hljs{background:transparent; padding:0;}
 
-.md-render{color:var(--text-ink); font-size:14.5px; line-height:1.65;}
-.md-render h1,.md-render h2,.md-render h3{font-family:'Fraunces',serif; margin:0.5em 0 0.3em;}
+.md-render{color:#d4d4d4; font-size:14px; line-height:1.65;}
+.md-render h1,.md-render h2,.md-render h3{font-family:'Inter',sans-serif; font-weight:700; color:#fff; margin:0.5em 0 0.3em;}
 .md-render p{margin:0.5em 0;}
-.md-render code{background:#efe9d8; padding:1px 5px; border-radius:4px; font-family:'JetBrains Mono',monospace; font-size:0.9em;}
-.md-render pre{background:#efe9d8; padding:10px; border-radius:8px; overflow:auto;}
-.md-render a{color:var(--denim);}
+.md-render code{background:#2d2d2d; padding:1px 5px; border-radius:4px; font-family:'JetBrains Mono',monospace; font-size:0.9em; color:var(--orange);}
+.md-render pre{background:#1a1a1a; padding:10px; border-radius:6px; overflow:auto; border:1px solid var(--border);}
+.md-render a{color:var(--blue-bright);}
 
 .output{
-  border-top:1px dashed var(--panel-line);
-  padding:12px 16px; font-family:'JetBrains Mono',monospace; font-size:12.5px;
-  white-space:pre-wrap; word-break:break-word; color:#c8cdd6; background:#161920;
+  border-top:1px solid var(--border);
+  padding:10px 14px; font-family:'JetBrains Mono',monospace; font-size:12.5px;
+  white-space:pre-wrap; word-break:break-word; color:#c8cdd6; background:#161616;
 }
-.output.error{color:#ffb4ac; background:#241717;}
-.output img{max-width:100%; border-radius:6px; margin-top:6px;}
-.output.empty-out{display:none;}
+.output.error{color:#ff9d94; background:#3a1a17;}
+.output.info{color:#e8c674; background:#2d2416; font-style:italic;}
+.output img{max-width:100%; border-radius:4px; margin-top:6px;}
 
-.add-row{
-  display:flex; gap:8px; justify-content:center; padding:6px 0 26px;
-}
+.add-row{ display:flex; gap:8px; justify-content:center; padding:6px 0 26px; }
 .add-row button{font-size:11.5px; padding:7px 12px;}
 
-/* ---------- Print (PDF export) ---------- */
-@media print{
-  body{background:#fff !important; color:#000 !important;}
-  .toolbar, .add-row, .cell-controls, .empty .actions{display:none !important;}
-  .stage{max-width:100%; padding:0; margin:0;}
-  .spine{display:none;}
-  .cell{
-    background:#fff !important; border:1px solid #ccc !important;
-    box-shadow:none !important; break-inside:avoid; margin-bottom:14px;
-  }
-  .cell-topbar{background:#f2f2f2 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
-  .stamp{-webkit-print-color-adjust:exact; print-color-adjust:exact;}
-  .cell.markdown .cell-body{background:#fff !important;}
-  .code-display, .code-display code.hljs{color:#111 !important; background:#f7f7f7 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
-  .output{background:#f7f7f7 !important; color:#111 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
-  .output.error{background:#fdeceb !important; color:#7a1f17 !important;}
-  textarea{display:none;}
-  .code-display, .md-render{display:block !important;}
-}
+.footnote{ text-align:center; color:var(--text-dim); font-size:11px; margin-top:8px; line-height:1.6; font-family:'JetBrains Mono',monospace;}
 
-.footnote{
-  text-align:center; color:var(--text-dim); font-size:11.5px; margin-top:8px; line-height:1.6;
+/* =====================================================================
+   PRINT / PDF — editorial report style (matches the uploaded sample):
+   light page, sans-serif body, bold section headers, orange In[] tags,
+   light-gray code + output blocks, centered images, footer credit.
+   ===================================================================== */
+@media print{
+  @page{ margin: 18mm 14mm; }
+  html,body{background:#fff !important; color:#111 !important;}
+  .toolbar, .add-row, .cell-controls, .empty .actions, .notice{display:none !important;}
+  .stage{max-width:100%; padding:0; margin:0;}
+
+  .cell{
+    background:#fff !important; border:none !important;
+    box-shadow:none !important; break-inside:avoid; margin-bottom:12px; border-radius:0 !important;
+  }
+  .cell-topbar{
+    background:transparent !important; border-bottom:none; padding:0 0 4px 0;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+  .stamp{
+    background:transparent !important; border:none !important; color:#b3491f !important;
+    font-weight:700; padding:0; min-width:0;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+  .tag{display:none;}
+  .cell-body{padding:0;}
+
+  .cell.markdown .cell-body{background:#fff !important;}
+  .md-render{color:#1a1a1a !important; font-family:'Inter','Segoe UI',sans-serif;}
+  .md-render h1{font-size:20px; border-bottom:1px solid #ccc; padding-bottom:6px; margin-top:0;}
+  .md-render h2{font-size:15px; margin-top:18px;}
+  .md-render h3{font-size:13px;}
+  .md-render code{background:#f0f0f0 !important; color:#a33 !important;}
+
+  textarea{display:none !important;}
+  .code-display{
+    display:block !important; color:#1a1a1a !important;
+    background:#f5f5f5 !important; border:1px solid #e2e2e2 !important;
+    border-radius:4px; padding:8px 10px; font-size:11px;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+  .code-display code.hljs{color:#1a1a1a !important; background:transparent !important;}
+  .cell.code .cell-topbar{ display:flex; }
+
+  .output{
+    background:#f7f7f7 !important; color:#222 !important; border-top:none;
+    border:1px dashed #ddd !important; margin-top:4px; font-size:11px;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+  .output.error{background:#fdeceb !important; color:#7a1f17 !important; border-color:#f3c8c4 !important;}
+  .output.info{background:#fff8e6 !important; color:#7a5b12 !important; border-color:#f0dfa8 !important;}
+
+  .print-footer{
+    display:block !important; text-align:center; color:#999; font-size:9.5px;
+    margin-top:24px; border-top:1px solid #eee; padding-top:8px;
+  }
 }
+.print-footer{display:none;}
 </style>
 </head>
 <body>
 
 <div class="toolbar">
   <div class="brand">
-    <div class="mark">N</div>
+    <div class="mark">&gt;_</div>
     <div>
       <h1>Notebook Studio</h1>
       <p>view · run · export .ipynb</p>
@@ -225,13 +253,20 @@ input[type=file]{display:none;}
 </div>
 
 <div class="stage">
-  <div class="spine"></div>
+  <div class="notice" id="kernelNotice" style="display:none;">
+    <span>⚠</span>
+    <span><b>Heads up:</b> code runs in a real Python kernel entirely in your browser (Pyodide) — there's no server and no GPU behind it.
+    Pure-Python / NumPy / pandas / matplotlib cells run for real. Cells that need <b>torch, torchvision, CUDA</b> or similar (like this notebook's model training)
+    can't execute here — no in-browser sandbox can do GPU deep learning. Those cells will show an explanation instead of crashing.
+    For a notebook like this, run it in <b>Google Colab</b> or a real Jupyter/GPU environment; use this tool to view, edit and export it to PDF.</span>
+  </div>
   <div id="cellsRoot"></div>
   <div id="addRowBottom" class="add-row" style="display:none;">
     <button onclick="addCell('code')">+ Code cell</button>
     <button onclick="addCell('markdown')">+ Markdown cell</button>
   </div>
-  <p class="footnote" id="footnote" style="display:none;">Python runs locally in your browser via Pyodide — no server, nothing uploaded. Packages outside the standard scientific stack may not be available. To save as PDF, click <b>Export PDF</b> and choose "Save as PDF" in the print dialog.</p>
+  <p class="footnote" id="footnote" style="display:none;">Packages outside Pyodide's built-ins aren't available, and there's no GPU — see the notice above. To save as PDF, click <b>Export PDF</b> and choose "Save as PDF" in the print dialog.</p>
+  <div class="print-footer">Exported with Notebook Studio</div>
 </div>
 
 <script>
@@ -240,11 +275,12 @@ marked.setOptions({ breaks:true, gfm:true });
 let state = { cells: [], nextId: 1 };
 let pyodide = null;
 let pyodideLoading = false;
+let execCounter = 0;
 
 function uid(){ return state.nextId++; }
 
 function blankCell(type){
-  return { id: uid(), type, source: type==='code' ? '' : '## New note\n\nWrite markdown here.', execCount: null, outputs: [], collapsed:false };
+  return { id: uid(), type, source: type==='code' ? '' : '## New note\n\nWrite markdown here.', execCount: null, outputs: [], _preview: type==='markdown' };
 }
 
 /* ---------- Parsing an uploaded .ipynb ---------- */
@@ -274,10 +310,11 @@ function loadNotebook(json){
       source,
       execCount: c.execution_count || null,
       outputs,
-      collapsed:false
+      _preview: c.cell_type === 'markdown'
     };
   });
   state.cells = cells.length ? cells : [blankCell('markdown')];
+  document.getElementById('kernelNotice').style.display = 'flex';
   render();
 }
 
@@ -297,6 +334,7 @@ function normalizeOutput(o){
   return null;
 }
 function stripAnsi(s){ return (s||'').replace(/\u001b\[[0-9;]*m/g,''); }
+function escapeHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 /* ---------- Rendering ---------- */
 function render(){
@@ -306,9 +344,10 @@ function render(){
   document.getElementById('footnote').style.display = hasCells ? 'block' : 'none';
 
   if(!hasCells){
+    document.getElementById('kernelNotice').style.display = 'none';
     root.innerHTML = `
       <div class="empty">
-        <div class="mark-lg">N</div>
+        <div class="mark-lg">&gt;_</div>
         <h2>No notebook loaded</h2>
         <p>Open an existing .ipynb file to view, run and export it — or start a fresh notebook from scratch.</p>
         <div class="actions">
@@ -337,7 +376,7 @@ function renderCell(cell, idx){
     <span class="stamp">${stampText}</span>
     <span class="tag">${cell.type === 'code' ? 'python' : 'markdown'} · cell ${idx+1}</span>
     <div class="cell-controls">
-      ${cell.type==='code' ? `<button class="icon-btn" title="Run cell" onclick="runCell(${cell.id})">▶ Run</button>` : `<button class="icon-btn" title="Toggle preview" onclick="toggleMdPreview(${cell.id})">👁 Preview</button>`}
+      ${cell.type==='code' ? `<button class="icon-btn" title="Run cell" onclick="runCell(${cell.id})">▶ Run</button>` : `<button class="icon-btn" title="Toggle edit/preview" onclick="toggleMdPreview(${cell.id})">${cell._preview ? '✏ Edit' : '👁 Preview'}</button>`}
       <button class="icon-btn" title="Move up" onclick="moveCell(${cell.id},-1)">↑</button>
       <button class="icon-btn" title="Move down" onclick="moveCell(${cell.id},1)">↓</button>
       <button class="icon-btn" title="Delete cell" onclick="deleteCell(${cell.id})">✕</button>
@@ -356,6 +395,14 @@ function renderCell(cell, idx){
     ta.addEventListener('keydown', (e)=>{ if(e.key === 'Tab'){ e.preventDefault(); document.execCommand('insertText', false, '    '); } });
     body.appendChild(ta);
     requestAnimationFrame(()=>autoGrow(ta));
+
+    const disp = document.createElement('pre');
+    disp.className = 'code-display';
+    const codeEl = document.createElement('code');
+    codeEl.className = 'language-python';
+    codeEl.textContent = cell.source;
+    disp.appendChild(codeEl);
+    body.appendChild(disp);
   } else {
     if(cell._preview){
       const div = document.createElement('div');
@@ -376,7 +423,7 @@ function renderCell(cell, idx){
   if(cell.type === 'code' && cell.outputs && cell.outputs.length){
     cell.outputs.forEach(o=>{
       const out = document.createElement('div');
-      out.className = 'output' + (o.kind==='error' ? ' error' : '');
+      out.className = 'output' + (o.kind==='error' ? ' error' : (o.kind==='info' ? ' info' : ''));
       if(o.kind === 'image'){
         const img = document.createElement('img');
         img.src = 'data:image/png;base64,' + o.text;
@@ -442,11 +489,60 @@ function setKernel(state_, label){
   lab.textContent = label;
 }
 
-let execCounter = 0;
+/* Detect shell/magic lines and known GPU/heavy-native libraries that
+   no in-browser Python kernel (Pyodide or otherwise) can run, so we
+   can explain clearly instead of throwing a raw traceback. */
+const HEAVY_LIBS = ['torch','torchvision','tensorflow','keras','cv2','jax','onnx','deepspeed'];
+
+function scanCell(source){
+  const lines = (source || '').split('\n');
+  const cleaned = [];
+  const notes = [];
+  let heavyLib = null;
+  const importRe = /^\s*(?:import|from)\s+([A-Za-z_][A-Za-z0-9_]*)/;
+  for(const line of lines){
+    const trimmed = line.trim();
+    if(trimmed.startsWith('!')){
+      notes.push('skipped shell command: ' + trimmed);
+      cleaned.push('# ' + line);
+      continue;
+    }
+    if(trimmed.startsWith('%')){
+      notes.push('skipped IPython magic: ' + trimmed);
+      cleaned.push('# ' + line);
+      continue;
+    }
+    const m = importRe.exec(line);
+    if(m && HEAVY_LIBS.includes(m[1]) && !heavyLib){ heavyLib = m[1]; }
+    cleaned.push(line);
+  }
+  return { cleaned: cleaned.join('\n'), notes, heavyLib };
+}
+
+function heavyLibMessage(lib, notes){
+  let msg = `⚠ This cell imports "${lib}", which needs native/GPU binaries no browser sandbox provides — `
+          + `so it can't run in an in-browser Python kernel (this is a hard limit, not a bug: there's simply no `
+          + `CUDA or ${lib} runtime available client-side).\n\n`
+          + `To actually run this notebook end-to-end, open it in Google Colab (Runtime → Change runtime type → GPU) `
+          + `or a local Jupyter server with ${lib} installed. Use "Save .ipynb" above to download this notebook first.`;
+  if(notes.length) msg += '\n\n(also skipped: ' + notes.join('; ') + ')';
+  return msg;
+}
 
 async function runCell(id){
   const cell = state.cells.find(c=>c.id===id);
   if(!cell || cell.type!=='code') return;
+
+  const { cleaned, notes, heavyLib } = scanCell(cell.source);
+
+  if(heavyLib){
+    cell.outputs = [{ kind:'info', text: heavyLibMessage(heavyLib, notes) }];
+    execCounter += 1;
+    cell.execCount = execCounter;
+    render();
+    return;
+  }
+
   try{
     const py = await ensurePyodide();
     setKernel('busy', 'running…');
@@ -458,13 +554,23 @@ async function runCell(id){
     execCounter += 1;
     let result;
     try{
-      result = await py.runPythonAsync(cell.source);
+      result = await py.runPythonAsync(cleaned);
     }catch(err){
-      cell.outputs.push({ kind:'error', text: String(err && err.message ? err.message : err) });
+      let msg = String(err && err.message ? err.message : err);
+      if(/ModuleNotFoundError|No module named/.test(msg)){
+        msg = '⚠ ' + msg + '\n\nThis package isn\'t available in the browser Python kernel. Pure-Python packages can sometimes be '
+            + 'added via micropip; native/GPU packages (torch, cv2, etc.) can\'t run here at all — use Colab or local Jupyter instead.';
+        cell.outputs.push({ kind:'info', text: msg });
+      } else {
+        cell.outputs.push({ kind:'error', text: msg });
+      }
       cell.execCount = execCounter;
       setKernel('ready','kernel ready');
       render();
       return;
+    }
+    if(notes.length){
+      cell.outputs.push({ kind:'info', text: notes.join('\n') });
     }
     if(buf.length){
       cell.outputs.push({ kind:'text', text: buf.join('') });
@@ -496,7 +602,7 @@ async function runAll(){
 function exportPdf(){
   state.cells.forEach(c=>{ if(c.type==='markdown') c._preview = true; });
   render();
-  setTimeout(()=>window.print(), 80);
+  setTimeout(()=>window.print(), 120);
 }
 
 function downloadIpynb(){
