@@ -173,60 +173,75 @@ input[type=file]{display:none;}
 .footnote{ text-align:center; color:var(--text-dim); font-size:11px; margin-top:8px; line-height:1.6; font-family:'JetBrains Mono',monospace;}
 
 /* =====================================================================
-   PRINT / PDF — editorial report style (matches the uploaded sample):
-   light page, sans-serif body, bold section headers, orange In[] tags,
-   light-gray code + output blocks, centered images, footer credit.
+   PRINT / PDF — polished editorial report style.
+   No "MD" / "In [n]" tags — markdown flows as plain article text,
+   code sits in clean bordered panels with a colored accent rail.
    ===================================================================== */
 @media print{
-  @page{ margin: 18mm 14mm; }
-  html,body{background:#fff !important; color:#111 !important;}
+  @page{ margin: 20mm 16mm; }
+  html,body{background:#fff !important; color:#161616 !important;}
   .toolbar, .add-row, .cell-controls, .empty .actions, .notice{display:none !important;}
   .stage{max-width:100%; padding:0; margin:0;}
 
+  /* Cell-topbar (holds the MD / In[n] stamp + tag) is fully removed in print */
+  .cell-topbar{ display:none !important; }
+
   .cell{
-    background:#fff !important; border:none !important;
-    box-shadow:none !important; break-inside:avoid; margin-bottom:12px; border-radius:0 !important;
+    background:transparent !important; border:none !important;
+    box-shadow:none !important; break-inside:avoid; margin-bottom:4px; border-radius:0 !important;
   }
-  .cell-topbar{
-    background:transparent !important; border-bottom:none; padding:0 0 4px 0;
-    -webkit-print-color-adjust:exact; print-color-adjust:exact;
-  }
-  .stamp{
-    background:transparent !important; border:none !important; color:#b3491f !important;
-    font-weight:700; padding:0; min-width:0;
-    -webkit-print-color-adjust:exact; print-color-adjust:exact;
-  }
-  .tag{display:none;}
+  .cell.markdown{ margin-bottom:2px; }
   .cell-body{padding:0;}
 
-  .cell.markdown .cell-body{background:#fff !important;}
-  .md-render{color:#1a1a1a !important; font-family:'Inter','Segoe UI',sans-serif;}
-  .md-render h1{font-size:20px; border-bottom:1px solid #ccc; padding-bottom:6px; margin-top:0;}
-  .md-render h2{font-size:15px; margin-top:18px;}
-  .md-render h3{font-size:13px;}
-  .md-render code{background:#f0f0f0 !important; color:#a33 !important;}
+  /* Markdown reads as normal flowing document text, no card/box */
+  .cell.markdown .cell-body{background:transparent !important;}
+  .md-render{color:#1c1c1c !important; font-family:'Inter','Segoe UI',sans-serif; font-size:12.5px;}
+  .md-render h1{
+    font-size:23px; font-weight:700; letter-spacing:-0.2px;
+    border-bottom:2.5px solid #0e70c0; padding-bottom:10px; margin:0 0 6px;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+  .md-render h2{
+    font-size:15px; font-weight:700; margin:22px 0 8px; padding-left:10px;
+    border-left:4px solid #0e70c0; color:#111;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+  .md-render h3{font-size:13px; font-weight:700; margin:14px 0 6px; color:#333;}
+  .md-render p{margin:6px 0; line-height:1.6;}
+  .md-render strong{color:#0b1f33;}
+  .md-render code{background:#f0f0f0 !important; color:#a33 !important; padding:1px 4px; border-radius:3px;}
+  .md-render a{color:#0e70c0 !important;}
 
+  /* Code cells: clean bordered panel with a colored accent rail, no In[] stamp */
   textarea{display:none !important;}
+  .cell.code{
+    margin:10px 0 14px; border-radius:6px !important; overflow:hidden;
+    border:1px solid #e4e4e4 !important; break-inside:avoid;
+    box-shadow:0 1px 2px rgba(0,0,0,0.04) !important;
+  }
   .code-display{
     display:block !important; color:#1a1a1a !important;
-    background:#f5f5f5 !important; border:1px solid #e2e2e2 !important;
-    border-radius:4px; padding:8px 10px; font-size:11px;
+    background:#f8f8f9 !important; border:none !important;
+    border-left:3px solid #0e70c0 !important;
+    padding:10px 12px; font-size:10.7px; margin:0;
     -webkit-print-color-adjust:exact; print-color-adjust:exact;
   }
   .code-display code.hljs{color:#1a1a1a !important; background:transparent !important;}
-  .cell.code .cell-topbar{ display:flex; }
 
   .output{
-    background:#f7f7f7 !important; color:#222 !important; border-top:none;
-    border:1px dashed #ddd !important; margin-top:4px; font-size:11px;
+    background:#fbfbfb !important; color:#262626 !important;
+    border:none !important; border-top:1px solid #ececec !important;
+    border-left:3px solid #c9c9c9 !important;
+    margin:0; padding:9px 12px; font-size:10.3px;
     -webkit-print-color-adjust:exact; print-color-adjust:exact;
   }
-  .output.error{background:#fdeceb !important; color:#7a1f17 !important; border-color:#f3c8c4 !important;}
-  .output.info{background:#fff8e6 !important; color:#7a5b12 !important; border-color:#f0dfa8 !important;}
+  .output.error{background:#fdeceb !important; color:#7a1f17 !important; border-left-color:#e0554a !important;}
+  .output.info{background:#fff8e6 !important; color:#7a5b12 !important; border-left-color:#e0b23c !important;}
+  .output img{border:1px solid #eee; border-radius:4px; margin:4px auto; display:block;}
 
   .print-footer{
-    display:block !important; text-align:center; color:#999; font-size:9.5px;
-    margin-top:24px; border-top:1px solid #eee; padding-top:8px;
+    display:block !important; text-align:center; color:#aaa; font-size:9px;
+    letter-spacing:0.4px; margin-top:28px; border-top:1px solid #eee; padding-top:10px;
   }
 }
 .print-footer{display:none;}
@@ -320,20 +335,33 @@ function loadNotebook(json){
 
 function normalizeOutput(o){
   if(o.output_type === 'stream'){
-    return { kind:'text', text: Array.isArray(o.text)? o.text.join('') : (o.text||'') };
+    return { kind:'text', text: cleanTerminalText(Array.isArray(o.text)? o.text.join('') : (o.text||'')) };
   }
   if(o.output_type === 'error'){
     const tb = Array.isArray(o.traceback) ? o.traceback.join('\n') : (o.evalue||'');
-    return { kind:'error', text: stripAnsi(tb || (o.ename+': '+o.evalue)) };
+    return { kind:'error', text: cleanTerminalText(tb || (o.ename+': '+o.evalue)) };
   }
   if(o.output_type === 'execute_result' || o.output_type === 'display_data'){
     const data = o.data || {};
     if(data['image/png']) return { kind:'image', text: data['image/png'] };
-    if(data['text/plain']) return { kind:'text', text: Array.isArray(data['text/plain']) ? data['text/plain'].join('') : data['text/plain'] };
+    if(data['text/plain']) return { kind:'text', text: cleanTerminalText(Array.isArray(data['text/plain']) ? data['text/plain'].join('') : data['text/plain']) };
   }
   return null;
 }
-function stripAnsi(s){ return (s||'').replace(/\u001b\[[0-9;]*m/g,''); }
+/* Removes ANSI escape sequences (colors, cursor moves, hide/show, erase-line)
+   and simulates \r carriage-return overwrites, so pip/progress-bar spam
+   collapses down to its final state instead of showing as garbled glyphs. */
+function cleanTerminalText(s){
+  if(!s) return s;
+  let out = s.split('\n').map(line=>{
+    const parts = line.split('\r');
+    return parts[parts.length-1];
+  }).join('\n');
+  out = out.replace(/\u001b\[[0-9;?]*[a-zA-Z]/g, '');
+  out = out.replace(/[\u2580-\u259F]/g, ''); // stray block-drawing progress-bar glyphs
+  out = out.split('\n').filter((l,i,arr)=> l.trim() !== '' || (i>0 && arr[i-1].trim() !== '')).join('\n');
+  return out.trim();
+}
 function escapeHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 /* ---------- Rendering ---------- */
@@ -573,7 +601,7 @@ async function runCell(id){
       cell.outputs.push({ kind:'info', text: notes.join('\n') });
     }
     if(buf.length){
-      cell.outputs.push({ kind:'text', text: buf.join('') });
+      cell.outputs.push({ kind:'text', text: cleanTerminalText(buf.join('')) });
     }
     if(result !== undefined && result !== null){
       try{
